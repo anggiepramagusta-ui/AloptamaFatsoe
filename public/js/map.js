@@ -1,10 +1,21 @@
-// public/js/map.js - FINAL COMPLETE VERSION
-// Fitur: Icon Kecil, Cluster Tooltip, Single Marker Tooltip, Clean Name
+// public/js/map.js - FINAL COMPLETE VERSION (BENGKULU BOUNDS)
+// Fitur: Khusus Wilayah Bengkulu, Icon Kecil, Cluster Tooltip, Single Marker Tooltip, Clean Name
 
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. Inisialisasi Batas Wilayah & Peta (Khusus Provinsi Bengkulu)
+    const bengkuluBounds = [
+        [-5.60, 101.00], // Southwest: Samudra Hindia & Pulau Enggano
+        [-2.20, 103.80]  // Northeast: Mukomuko & batas wilayah provinsi
+    ];
 
-    // 1. Inisialisasi Peta
-    const map = L.map('map').setView([-2.5489, 118.0149], 5);
+    const map = L.map('map', {
+        center: [-3.8000, 102.2600], // Pusat koordinat Bengkulu
+        zoom: 8,                     // Zoom ideal seluruh daratan Bengkulu & Enggano
+        minZoom: 7,                  // Mencegah zoom-out terlalu jauh keluar provinsi
+        maxBounds: bengkuluBounds,   // Mengunci koordinat dalam batas Bengkulu
+        maxBoundsViscosity: 1.0      // Mencegah peta bisa digeser keluar batas (kaku)
+    });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -348,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-// 2. Loading State
+            // 2. Loading State
             const loadingContent = `
                 <div class="popup-container">
                     <div class="popup-header ${statusClass}">
@@ -386,7 +397,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             displayMode = 'LIVE';
                         } else {
                             // Waktu Online, tapi Data Jelek (< 25%)
-                            // Kita paksa status jadi merah dan cari data lama yang bagus
                             console.warn(`Station ${station.icao} Live but Low Quality (${quality.toFixed(1)}%). Fallback search.`);
                             statusClass = 'status-border-red'; // Ubah header jadi merah
                             displayMode = 'BAD_QUALITY';
@@ -397,29 +407,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // B. Jika tidak Live atau Kualitas Jelek -> Cari Data Lama yang Bagus (Fallback)
             if (!lastData) {
-                // Kita ambil history 7 hari ke belakang (Array)
-                // Kenapa array? Karena kita harus loop mundur mencari data yang > 25%
-                // Endpoint 'latest' hanya mengembalikan 1 baris terakhir (yang mungkin juga jelek)
                 const response = await fetch(`/api/weather/history?stationId=${station.id_stasiun}&range=-7d`); 
                 const historyData = await response.json();
 
                 if (Array.isArray(historyData) && historyData.length > 0) {
-                    // Loop dari belakang (paling baru) ke depan
                     for (let i = historyData.length - 1; i >= 0; i--) {
                         const row = historyData[i];
                         const q = calculateDataQuality(row, station.parameters);
                         if (q >= 25) {
                             lastData = row;
-                            break; // Ketemu data bagus terakhir
+                            break;
                         }
                     }
                 }
             }
 
-            // 4. Update Header Warna (Jika fallback karena kualitas buruk, paksa merah)
-            // Kita lakukan manipulasi DOM string nanti di newPopupContent
-
-            // 5. Render Konten
+            // 4. Render Konten
             let contentBody = '';
             if (lastData) {
                 const date = new Date(lastData._time);
@@ -429,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rowsHtml = '';
                 if (station.parameters && Array.isArray(station.parameters)) {
                     station.parameters.forEach(paramKey => {
-                        const config = parameterConfig[paramKey] || { label: paramKey, unit: "" };
+                        const config = (typeof parameterConfig !== 'undefined' && parameterConfig[paramKey]) ? parameterConfig[paramKey] : { label: paramKey, unit: "" };
                         const rawValue = lastData[paramKey];
                         const value = (rawValue !== undefined && rawValue !== null) ? (typeof rawValue === 'number' ? rawValue.toFixed(1) : rawValue) : '--'; 
                         const unit = config.unit ? ` ${config.unit}` : '';
