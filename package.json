@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@influxdata/influxdb-client": "^1.35.0",
+    "bcrypt": "^6.0.0",
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "ini": "^5.0.0",
+    "pg": "^8.16.3",
+    "socket.io": "^4.8.1"
+  }
+}

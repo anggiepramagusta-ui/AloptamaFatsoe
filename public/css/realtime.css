@@ -1,0 +1,175 @@
+body {
+  background-color: #f0f2f5;
+}
+
+.data-card,
+.card {
+  height: 100%;
+}
+
+.data-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem;
+  text-align: center;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.card-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.card-value {
+  /* Menggunakan clamp() untuk font size yang fluid (responsif mulus).
+    Format: clamp(UKURAN_MINIMUM, UKURAN_IDEAL, UKURAN_MAKSIMUM)
+  */
+  font-size: clamp(1.8rem, calc(1.5rem + 1.5vw), 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #212529;
+}
+
+.card-unit {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+/* Media Queries untuk penyesuaian di layar kecil */
+@media (max-width: 767.98px) {
+  #dashboard-header h1 {
+    font-size: 1.75rem; /* Perkecil judul utama di ponsel */
+  }
+
+  .data-card {
+    padding: 1rem; /* Kurangi padding kartu data di ponsel */
+  }
+
+  .card-label,
+  .card-unit {
+    font-size: 0.85rem; /* Perkecil font label dan unit di ponsel */
+  }
+}
+
+#toggle-drag-btn {
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+/* --- LIVE INDICATOR DOT --- */
+.status-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #adb5bd; /* Warna default (abu-abu/offline) */
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+/* Class saat koneksi socket terhubung (Standby Hijau Redup) */
+.status-dot.connected {
+    background-color: #198754; /* Hijau redup */
+}
+
+/* Class saat data masuk (Berkedip Biru Terang) */
+.status-dot.active {
+    background-color: #0d6efd; /* Biru Bootstrap */
+    transform: scale(1.4);     /* Membesar sedikit */
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.8); /* Efek glow/cahaya */
+}
+
+/* Class saat error/putus */
+.status-dot.disconnected {
+    background-color: #dc3545; /* Merah */
+    box-shadow: none;
+}
+
+/* ID untuk grup jarum agar bisa di-target */
+#needle-group {
+    transform-origin: 400px 300px; /* Titik tengah putaran sesuai koordinat SVG Anda */
+    transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); /* Animasi halus & membal sedikit */
+    will-change: transform; /* Optimasi performa browser */
+}
+
+/* Supaya angka juga berubah halus (opsional) */
+#wind-speed-text, #wind-dir-text {
+    transition: opacity 0.2s;
+}
+
+/* --- DARK MODE OVERRIDES (Khusus Realtime) --- */
+
+body.dark-mode {
+    background-color: #121212 !important; /* Latar belakang hitam pekat */
+    color: #e0e0e0;
+}
+
+/* Ubah warna kartu menjadi abu-abu gelap */
+body.dark-mode .data-card, 
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    border-color: #333;
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+}
+
+/* Judul & Teks */
+body.dark-mode #dashboard-title,
+body.dark-mode h1, 
+body.dark-mode h2, 
+body.dark-mode h3 {
+    color: #ffffff;
+}
+
+body.dark-mode .text-muted {
+    color: #a0a0a0 !important;
+}
+
+body.dark-mode .card-label,
+body.dark-mode .card-unit {
+    color: #b0b3b8;
+}
+
+body.dark-mode .card-value {
+    color: #ffffff;
+}
+
+/* --- FIX WARNA SVG WIND ROSE (Agar terlihat di gelap) --- */
+/* Angka Besar & Unit (Knot/Derajat) -> Jadi Putih */
+body.dark-mode .cls-7,
+body.dark-mode .cls-8, 
+body.dark-mode .cls-9 {
+    fill: #ffffff !important;
+}
+
+/* Arah Mata Angin (N, S, E, W) & Titik-titik -> Jadi Abu Terang */
+body.dark-mode .cls-4, 
+body.dark-mode .cls-3, 
+body.dark-mode .cls-2 { 
+    fill: #cccccc !important; 
+}
+
+/* Tombol Toggle saat Dark Mode */
+body.dark-mode #dark-mode-btn {
+    color: #ffc107; /* Kuning */
+    border-color: #ffc107;
+}
+body.dark-mode #dark-mode-btn:hover {
+    background-color: #ffc107;
+    color: #000;
+}
+
+/* Target elemen .cls-1 (Lingkaran bawah) saat body punya class dark-mode */
+body.dark-mode .cls-1 {
+    fill: #1e1e1e !important; /* Ubah background putih jadi abu-abu gelap (sama dengan warna kartu) */
+    /* Atau gunakan #000000 jika ingin benar-benar hitam pekat */
+}
+
+/* Opsional: Jika ingin garis pinggir (stroke) merahnya tetap menyala atau diubah */
+body.dark-mode .cls-1 {
+    stroke: #fe3e3d !important; /* Tetap merah agar senada */
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
+    <title>Tabel Data Cuaca</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/table.css">
+</head>
+<body>
+    <header include-html="/_header.html"></header>
+
+    <div class="container">
+        <div class="mb-4 text-center">
+            <h1 id="table-title">Weather Data Table</h1>
+            <p id="station-subtitle" class="lead text-muted mb-0">Memuat data stasiun...</p>
+        </div>
+
+        <div class="filter-controls justify-content-center">
+            <div class="control-group">
+                <label for="startTime">Waktu Mulai:</label>
+                <input type="datetime-local" id="startTime" class="form-control">
+            </div>
+            <div class="control-group">
+                <label for="endTime">Waktu Selesai:</label>
+                <input type="datetime-local" id="endTime" class="form-control">
+            </div>
+            <button id="fetchDataBtn" class="btn btn-primary">Tampilkan Data</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead id="tableHeader"></thead>
+                <tbody id="dataTableBody"></tbody>
+            </table>
+
+            <div class="pagination-footer">
+                <div id="paginationInfo" class="pagination-info"></div>
+                <nav>
+                    <ul class="pagination" id="paginationControls"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/layout.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/table.js"></script>
+</body>
+</html>

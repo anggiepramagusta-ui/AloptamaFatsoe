@@ -1,0 +1,156 @@
+/* public/css/theme.css */
+
+/* --- DEFINISI VARIABEL WARNA (Palet) --- */
+:root {
+    /* DEFAULT: LIGHT MODE */
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-navbar: #ffffff;
+    --text-main: #212529;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --hover-bg: #e9ecef;
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --table-header: #f8f9fa;
+    --table-stripe: #f2f2f2;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+}
+
+/* OVERRIDE: DARK MODE */
+[data-theme="dark"] {
+    --bg-body: #121212;         /* Hitam lembut (Material Dark) */
+    --bg-card: #1e1e1e;         /* Abu-abu gelap untuk kartu */
+    --bg-navbar: #1a1a1a;
+    --text-main: #e0e0e0;       /* Putih gading (tidak putih total agar tidak pedih) */
+    --text-muted: #a0a0a0;
+    --border-color: #333333;
+    --hover-bg: #2d2d2d;
+    --input-bg: #2b2b2b;
+    --input-border: #444444;
+    --table-header: #2c2c2c;
+    --table-stripe: #252525;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+/* --- PENERAPAN VARIABEL KE ELEMEN --- */
+body {
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Komponen Kartu & Kontainer */
+.card, .data-card, .table-container, .form-container, .filter-controls, .chart-container, .modal-content {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: 0 4px 6px var(--shadow-color) !important;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--bg-navbar) !important;
+    border-bottom: 1px solid var(--border-color);
+}
+.navbar-light .navbar-nav .nav-link { color: var(--text-main); }
+.navbar-light .navbar-nav .nav-link:hover { color: #0d6efd; }
+.dropdown-menu { background-color: var(--bg-card); border-color: var(--border-color); }
+.dropdown-item { color: var(--text-main); }
+.dropdown-item:hover { background-color: var(--hover-bg); color: var(--text-main); }
+
+/* Tabel */
+table th { background-color: var(--table-header) !important; color: var(--text-main); border-bottom: 2px solid var(--border-color); }
+table td { border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+.table-striped > tbody > tr:nth-of-type(odd) { --bs-table-accent-bg: var(--table-stripe) !important; color: var(--text-main); }
+
+/* Form Input */
+input.form-control, select.form-select {
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    border-color: var(--input-border);
+}
+input.form-control:focus, select.form-select:focus {
+    background-color: var(--input-bg);
+    color: var(--text-main);
+}
+
+/* --- KHUSUS SVG WIND ROSE (Agar terlihat di Dark Mode) --- */
+[data-theme="dark"] .cls-4, 
+[data-theme="dark"] .cls-3, 
+[data-theme="dark"] .cls-2 { 
+    fill: #cccccc !important; /* Ubah teks hitam di SVG jadi abu-abu terang */
+}
+[data-theme="dark"] .cls-7,
+[data-theme="dark"] .cls-8,
+[data-theme="dark"] .cls-9 {
+    fill: #ffffff !important;
+}
+
+/* Teks Helper */
+.text-muted { color: var(--text-muted) !important; }
+.text-dark { color: var(--text-main) !important; }
+
+/* Tambahan di theme.css */
+
+/* Pastikan teks/icon di navbar mengikuti variabel tema */
+.navbar-light .navbar-nav .nav-link,
+.navbar .text-dark, 
+.navbar button {
+    color: var(--text-main) !important;
+}
+
+/* Hover effect untuk tombol toggle */
+#header-theme-toggle:hover svg {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+/* public/css/theme.css - TAMBAHAN */
+
+/* Perbaikan Komponen Bootstrap di Dark Mode */
+[data-theme="dark"] .progress {
+    background-color: #333; /* Ubah latar track progress bar jadi gelap */
+}
+
+/* Pastikan Scrollbar Browser juga gelap (Chrome/Edge/Safari) */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 12px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: #121212; 
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background-color: #444; 
+    border-radius: 6px;
+    border: 3px solid #121212; 
+}
+
+/* Perbaikan Modal Bootstrap (jika ada) */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-color);
+}
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%); /* Ubah tombol X jadi putih */
+}
+
+/* Kelas ini akan ditambahkan via JS hanya saat tombol ditekan.
+   Ini mencegah animasi 'flash' saat halaman pertama kali dimuat.
+*/
+.app-transition,
+.app-transition *,
+.app-transition *:before,
+.app-transition *:after {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-delay: 0s !important;
+}
+
+/* Hapus transisi bawaan di body agar tidak bentrok */
+body {
+    transition: none !important; 
+}

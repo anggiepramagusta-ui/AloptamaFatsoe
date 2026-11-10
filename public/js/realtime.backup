@@ -1,0 +1,268 @@
+// public/js/realtime.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Elemen DOM ---
+    const dashboardTitle = document.getElementById('dashboard-title');
+    const stationSubtitle = document.getElementById('station-subtitle');
+    const windCardContainer = document.getElementById('wind-card-container');
+    const lastUpdateSpan = document.getElementById('last-update');
+    const eightCardLayout = document.getElementById('eight-card-layout');
+    const eightCardLeftCol = document.getElementById('eight-card-left-col');
+    const eightCardRightCol = document.getElementById('eight-card-right-col');
+    const defaultCardsContainer = document.getElementById('default-cards-container');
+    const toggleDragBtn = document.getElementById('toggle-drag-btn');
+    
+    
+    let currentStationParameters = [];
+    let sortableInstances = [];
+    let isDragEnabled = true;
+
+    // --- Fungsi Bantuan ---
+    function getStationIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('stationId');
+    }
+
+    function createStandardCardHTML(paramKey, value, columnClass) {
+        const config = parameterConfig[paramKey] || { label: paramKey.replace(/_/g, ' '), unit: '' };
+        const displayValue = (value !== undefined && value !== null) ? (typeof value === 'number' ? value.toFixed(1) : value) : '--';
+        return `
+            <div class="${columnClass}" data-param-key="${paramKey}">
+                <div class="data-card">
+                    <div class="card-label">${config.label}</div>
+                    <div class="card-value">${displayValue}</div>
+                    <div class="card-unit">${config.unit || '&nbsp;'}</div>
+                </div>
+            </div>`;
+    }
+
+function createWindCardHTML(data) {
+    const windDir = data.wind_direction;
+    const windSpeedKnot = data.wind_speed;
+    const dirValue = (windDir !== undefined && windDir !== null) ? windDir.toFixed(0) : 0;
+    const speedKnotValue = (windSpeedKnot !== undefined && windSpeedKnot !== null) ? windSpeedKnot.toFixed(1) : '--';
+    const rotation = parseInt(dirValue) - 90;
+
+    // --- BLOK KODE BARU UNTUK MEMBUAT SKALA NONIUS ---
+    let vernierTicks = '';
+    const centerX = 400;
+    const centerY = 300;
+    const radius = 148;
+
+    for (let i = 10; i < 360; i += 10) {
+        // Lewati sudut yang sudah memiliki titik besar (kelipatan 30)
+        if (i % 30 === 0) {
+            continue;
+        }
+
+        // Konversi derajat ke radian dan sesuaikan rotasi (0 derajat adalah atas)
+        const angleRad = (i - 90) * (Math.PI / 180);
+
+        // Hitung posisi x dan y untuk titik baru
+        const x = centerX + radius * Math.cos(angleRad);
+        const y = centerY + radius * Math.sin(angleRad);
+
+        // Buat elemen SVG lingkaran kecil untuk setiap titik
+        vernierTicks += `<circle class="cls-2" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="2"/>`;
+    }
+    // --- AKHIR BLOK KODE BARU ---
+
+    return `
+        <div class="card p-3 h-100 d-flex flex-column">
+            <div class="card-title w-100 flex-row d-flex align-items-start justify-content-between">
+                <span class="fs-6 me-2">Wind Display</span>
+            </div>
+            <div class="p-0 flex-grow-1 d-flex align-items-center justify-content-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="181 110 450 450">
+                    <defs>
+                        <style>.cls-1{fill:#fff;stroke:#fe3e3d;stroke-miterlimit:10;stroke-width:6px;}.cls-2,.cls-3,.cls-4{fill:#777;}.cls-3{font-family:Arial-Black,Arial;font-size:20px;}.cls-5{filter:url(#drop-shadow-1);}.cls-4{font-family:Arial-BoldMT,Arial;font-size:20px;font-weight:700;}.cls-6{fill:#fe3e3d;}.cls-7{font-family:Arial-BoldMT,Arial;font-size:45px;font-weight:700;text-align:center;fill:#fff;text-anchor:middle;}.cls-8{font-family:Arial-BoldMT,Arial;font-size:40px;font-weight:700;text-align:center;text-anchor:middle;}.cls-9{font-family:Arial-BoldMT,Arial;font-size:19px;font-weight:700;text-align:center;fill:#fff;text-anchor:middle;}</style>
+                        <filter id="drop-shadow-1" filterUnits="userSpaceOnUse"><feOffset dx="0" dy="4"/><feGaussianBlur result="blur" stdDeviation="8"/><feFlood flood-color="#000" flood-opacity=".19"/><feComposite in2="blur" operator="in"/><feComposite in="SourceGraphic"/></filter>
+                    </defs>
+                    <g class="cls-5"><circle class="cls-6" cx="400" cy="270.75" r="75"/><circle class="cls-1" cx="400" cy="360.25" r="55"/></g>
+                    <g><polygon class="cls-6" transform="translate(400 300) rotate(${rotation})" points="155,-15 120,0 155,15"/></g>
+                    <g>
+                        <circle class="cls-2" cx="400" cy="152" r="3"/><circle class="cls-2" cx="326" cy="171.83" r="3"/><circle class="cls-2" cx="271.83" cy="226" r="3"/><circle class="cls-2" cx="252" cy="300" r="3"/><circle class="cls-2" cx="271.83" cy="374" r="3"/><circle class="cls-2" cx="326" cy="428.17" r="3"/><circle class="cls-2" cx="400" cy="448" r="3"/><circle class="cls-2" cx="474" cy="428.17" r="3"/><circle class="cls-2" cx="528.17" cy="374" r="3"/><circle class="cls-2" cx="548" cy="300" r="3"/><circle class="cls-2" cx="528.17" cy="226" r="3"/><circle class="cls-2" cx="474" cy="171.83" r="3"/>
+                        
+                        ${vernierTicks}
+
+                        <text class="cls-4" transform="translate(392.78 127.1)"><tspan x="0" y="0">N</tspan></text>
+                        <text class="cls-3" transform="translate(296.56 161.43) rotate(-30)"><tspan x="0" y="0">330</tspan></text>
+                        <text class="cls-3" transform="translate(241.42 232.79) rotate(-60)"><tspan x="0" y="0">300</tspan></text>
+                        <text class="cls-4" transform="translate(229.35 308.69) rotate(-90)"><tspan x="0" y="0">W</tspan></text>
+                        <text class="cls-3" transform="translate(263.68 405.69) rotate(-120)"><tspan x="0" y="0">240</tspan></text>
+                        <text class="cls-3" transform="translate(335.04 460.83) rotate(-150)"><tspan x="0" y="0">210</tspan></text>
+                        <text class="cls-4" transform="translate(407.72 472.9) rotate(-180)"><tspan x="0" y="0">S</tspan></text>
+                        <text class="cls-3" transform="translate(507.94 438.57) rotate(150)"><tspan x="0" y="0">150</tspan></text>
+                        <text class="cls-3" transform="translate(563.08 367.21) rotate(120)"><tspan x="0" y="0">120</tspan></text>
+                        <text class="cls-4" transform="translate(575.15 293.08) rotate(90)"><tspan x="0" y="0">E</tspan></text>
+                        <text class="cls-3" transform="translate(544.16 200.08) rotate(60)"><tspan x="0" y="0">60</tspan></text>
+                        <text class="cls-3" transform="translate(475.24 142.5) rotate(30)"><tspan x="0"y="0">30</tspan></text>
+                        
+                        <text class="cls-7" transform="translate(400 280)"><tspan x="0" y="0">${speedKnotValue}</tspan></text>
+                        <text class="cls-9" transform="translate(400 300)"><tspan x="0" y="0">knot</tspan></text>
+                        <text class="cls-8" transform="translate(404.72 375)"><tspan x="0" y="0">${dirValue}&#176;</tspan></text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    `;
+}
+
+    // --- Logika Drag and Drop ---
+    function initializeSortable(stationId) {
+        sortableInstances.forEach(s => s.destroy());
+        sortableInstances = [];
+        const containers = [defaultCardsContainer, eightCardLeftCol, eightCardRightCol];
+        containers.forEach(container => {
+            if (container) {
+                sortableInstances.push(new Sortable(container, {
+                    animation: 150,
+                    group: 'shared-cards',
+                    disabled: !isDragEnabled,
+                    onEnd: () => saveNewOrder(stationId)
+                }));
+            }
+        });
+    }
+
+    async function saveNewOrder(stationId) {
+        const otherCardsOrder = Array.from(document.querySelectorAll('#default-cards-container [data-param-key], #eight-card-layout [data-param-key]')).map(el => el.dataset.paramKey);
+        const windParams = ['wind_direction', 'wind_speed'];
+        const existingWindParams = currentStationParameters.filter(p => windParams.includes(p));
+        const finalParameterList = [...existingWindParams, ...otherCardsOrder];
+
+        try {
+            const response = await fetch(`/api/stations/${stationId}/parameters`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parameters: finalParameterList })
+            });
+            if (response.ok) {
+                console.log("Urutan parameter berhasil disimpan.");
+                updateCachedStationParameters(stationId, finalParameterList);
+                currentStationParameters = finalParameterList;
+            } else {
+                console.error("Gagal menyimpan urutan parameter.");
+            }
+        } catch (error) {
+            console.error("Error saat menyimpan urutan:", error);
+        }
+    }
+
+    // --- Fungsi Utama untuk Memuat Dashboard ---
+    async function loadDashboardForStation(stationId) {
+        try {
+            // 1. Dapatkan detail stasiun (termasuk nama dan parameter)
+            const allStations = await getStationList();
+            const selectedStation = allStations.find(s => s.id_stasiun === stationId);
+            if (!selectedStation || !selectedStation.parameters) {
+                stationSubtitle.textContent = "Konfigurasi stasiun atau parameter tidak ditemukan.";
+                return;
+            }
+            currentStationParameters = selectedStation.parameters;
+            
+            // Perbarui judul halaman
+            dashboardTitle.textContent = selectedStation.nama_stasiun;
+            stationSubtitle.textContent = `ICAO: ${selectedStation.icao} / Runway ${selectedStation.runway}`;
+
+            // 2. Dapatkan data cuaca terbaru
+            const response = await fetch(`/api/weather/latest?stationId=${stationId}`);
+            const latestData = await response.json();
+
+            // 3. Reset dan render kartu data
+            windCardContainer.innerHTML = '';
+            eightCardLeftCol.innerHTML = '';
+            eightCardRightCol.innerHTML = '';
+            defaultCardsContainer.innerHTML = '';
+
+            if (Object.keys(latestData).length === 0) {
+                defaultCardsContainer.style.display = 'flex';
+                eightCardLayout.style.display = 'none';
+                defaultCardsContainer.innerHTML = '<p class="text-center col-12">Tidak ada data real-time yang ditemukan.</p>';
+                return;
+            }
+
+            if (currentStationParameters.includes('wind_direction')) {
+                windCardContainer.insertAdjacentHTML('beforeend', createWindCardHTML(latestData));
+            }
+
+            const otherParameters = currentStationParameters.filter(p => !['wind_direction', 'wind_speed'].includes(p));
+
+            eightCardLayout.style.display = 'none';
+            defaultCardsContainer.style.display = 'flex';
+
+            if (otherParameters.length > 0 && otherParameters.length % 2 === 0) {
+                const numCols = otherParameters.length / 2;
+
+                let bootstrapColNum = 6; 
+
+                if (numCols > 0 && 12 % numCols === 0) {
+                    bootstrapColNum = 12 / numCols;
+                }
+
+                const colClass = `col-lg-${bootstrapColNum} col-md-6 col-12`;
+
+                otherParameters.forEach(paramKey => {
+                    defaultCardsContainer.insertAdjacentHTML('beforeend', createStandardCardHTML(paramKey, latestData[paramKey], colClass));
+                });
+
+            } else {
+                otherParameters.forEach(paramKey => {
+                    defaultCardsContainer.insertAdjacentHTML('beforeend', createStandardCardHTML(paramKey, latestData[paramKey], 'col-lg-4 col-md-6 col-12'));
+                });
+            }
+            
+            const updateTime = new Date(latestData._time);
+            const pad = (n) => String(n).padStart(2, '0');
+            lastUpdateSpan.textContent = `${pad(updateTime.getUTCDate())}/${pad(updateTime.getUTCMonth() + 1)}/${updateTime.getUTCFullYear()} ${pad(updateTime.getUTCHours())}:${pad(updateTime.getUTCMinutes())}:${pad(updateTime.getUTCSeconds())} UTC`;
+
+            initializeSortable(stationId);
+
+            
+
+        } catch (error) {
+            console.error("Gagal memperbarui dashboard real-time:", error);
+            stationSubtitle.textContent = "Gagal memuat data. Periksa koneksi atau coba lagi nanti.";
+            defaultCardsContainer.innerHTML = '';
+        }
+    }
+
+    // --- Inisialisasi Halaman ---
+    function initialize() {
+        const stationId = getStationIdFromUrl();
+
+        if (stationId) {
+            // Muat data pertama kali, lalu set interval untuk auto-refresh
+            loadDashboardForStation(stationId);
+            setInterval(() => loadDashboardForStation(stationId), 10000);
+
+            toggleDragBtn.addEventListener('click', () => {
+                isDragEnabled = !isDragEnabled;
+
+                sortableInstances.forEach(instance => {
+                    instance.option('disabled', !isDragEnabled);
+                });
+
+                if (isDragEnabled) {
+                    toggleDragBtn.textContent = 'Drag&Drop Enable';
+                    toggleDragBtn.classList.remove('btn-success');
+                    toggleDragBtn.classList.add('btn-outline-primary');
+                } else {
+                    toggleDragBtn.textContent = 'Drag&Drop Disable';
+                    toggleDragBtn.classList.remove('btn-outline-primary');
+                    toggleDragBtn.classList.add('btn-success');
+                }
+            });
+
+        } else {
+            // Tampilkan pesan error jika tidak ada stationId
+            dashboardTitle.textContent = "Stasiun Tidak Ditemukan";
+            stationSubtitle.textContent = "Silakan kembali ke halaman Peta dan pilih stasiun untuk dilihat.";
+            toggleDragBtn.style.display = 'none';
+        }
+
+        toggleDragBtn.click();
+    }
+    
+    initialize();
+});

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Admin - Manajemen Stasiun & User</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <header include-html="/_header.html"></header>
+    <div class="container">
+        <div class="table-container">
+
+            <ul class="nav nav-tabs" id="adminTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-tab-pane" type="button" role="tab" aria-controls="users-tab-pane" aria-selected="true">Manajemen User</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="stations-tab" data-bs-toggle="tab" data-bs-target="#stations-tab-pane" type="button" role="tab" aria-controls="stations-tab-pane" aria-selected="false">Manajemen Stasiun</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="adminTabContent" style="padding-top: 2rem;">
+
+                <div class="tab-pane fade show active" id="users-tab-pane" role="tabpanel" aria-labelledby="users-tab" tabindex="0">
+                    <div class="table-header">
+                        <h3>Daftar User</h3>
+                        <button id="showAddUserFormBtn" class="btn btn-success btn-sm">Tambah User Baru</button>
+                    </div>
+                    <div id="addUserFormContainer" class="form-container" style="display: none; margin-top: 1rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                        <h4>Tambah User Baru</h4>
+                        <form id="addUserForm">
+                            <div class="row g-2">
+                                <div class="col-md"><input type="text" id="add-username" class="form-control" placeholder="Username" required></div>
+                                <div class="col-md"><input type="password" id="add-password" class="form-control" placeholder="Password" required></div>
+                                <div class="col-md">
+                                     <select id="add-role" class="form-select" required>
+                                        <option value="" disabled selected>Pilih Role</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="user">User</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-auto"><button type="submit" class="btn btn-success">Tambah User</button></div>
+                            </div>
+                        </form>
+                    </div>
+                    <table>
+                        <thead><tr><th>Username</th><th>Role</th><th>Aksi</th></tr></thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                    <nav class="mt-3"><ul class="pagination justify-content-end" id="usersPagination"></ul></nav>
+                </div>
+
+                <div class="tab-pane fade" id="stations-tab-pane" role="tabpanel" aria-labelledby="stations-tab" tabindex="0">
+                    <div class="table-header">
+                        <h3>Daftar Stasiun</h3>
+                        <button id="showAddFormBtn" class="btn btn-success btn-sm">Tambah Stasiun Baru</button>
+                    </div>
+                    <div id="addStationFormContainer" class="form-container" style="display: none; margin-top: 1rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 0.25rem;">
+                        <h3>Tambah Stasiun Baru</h3>
+                        <form id="addStationForm">
+                            <div class="form-grid">
+                                <input type="text" id="add-id_stasiun" class="form-control" placeholder="ID Stasiun (e.g., 7000000001)" required>
+                                <input type="text" id="add-nama_stasiun" class="form-control" placeholder="Nama Stasiun" required>
+                                <select id="add-icao" class="form-select" required><option>Memuat ICAO...</option></select>
+                                <select id="add-runway" class="form-select" required><option>Pilih ICAO dulu</option></select>
+                                <input type="number" step="any" id="add-latitude" class="form-control" placeholder="Latitude (e.g., -6.123)" required>
+                                <input type="number" step="any" id="add-longitude" class="form-control" placeholder="Longitude (e.g., 106.456)" required>
+                            </div>
+                            <div id="parameter-selection" class="param-section">
+                                <h4>Pilih Parameter Awal:</h4>
+                                <div class="param-container"></div>
+                            </div>
+                            <div class="form-footer">
+                                <button type="submit" class="btn btn-success btn-sm">Tambah Stasiun</button>
+                            </div>
+                        </form>
+                    </div>
+                    <table>
+                        <thead><tr><th>ID Stasiun</th><th>Nama Stasiun</th><th>ICAO</th><th>Koordinat</th><th>Aksi</th></tr></thead>
+                        <tbody id="stationsTableBody"></tbody>
+                    </table>
+                    <nav class="mt-3"><ul class="pagination justify-content-end" id="stationsPagination"></ul></nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editStationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Edit Stasiun</h2>
+            <form id="editStationForm">
+                <div class="form-grid">
+                    <input type="hidden" id="edit-original-id">
+                    <input type="text" id="edit-id_stasiun" class="form-control" placeholder="ID Stasiun" required>
+                    <input type="text" id="edit-nama_stasiun" class="form-control" placeholder="Nama Stasiun" required>
+                    <select id="edit-icao" class="form-select" required></select>
+                    <select id="edit-runway" class="form-select" required></select>
+                    <input type="number" step="any" id="edit-latitude" class="form-control" placeholder="Latitude" required>
+                    <input type="number" step="any" id="edit-longitude" class="form-control" placeholder="Longitude" required>
+                </div>
+                <div id="edit-parameter-selection" class="param-section">
+                    <h4>Urutkan Parameter (Drag & Drop):</h4>
+                    <div class="param-container"></div>
+                </div>
+                <div class="form-footer"><button type="submit" class="btn btn-primary">Simpan Perubahan</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editUserModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-button" id="closeUserModalButton">&times;</span>
+            <h2>Edit User Role</h2>
+            <form id="editUserForm">
+                <input type="hidden" id="edit-username-hidden">
+                <div class="mb-3">
+                    <label for="edit-username-display" class="form-label">Username</label>
+                    <input type="text" id="edit-username-display" class="form-control" disabled>
+                </div>
+                <div class="mb-3">
+                    <label for="edit-role" class="form-label">Role</label>
+                    <select id="edit-role" class="form-select" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-footer"><button type="submit" class="btn btn-primary">Simpan Perubahan</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script src="/js/layout.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+
+</html>

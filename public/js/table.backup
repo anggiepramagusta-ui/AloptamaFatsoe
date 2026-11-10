@@ -1,0 +1,202 @@
+// public/js/table.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Elemen DOM ---
+    const tableTitle = document.getElementById('table-title');
+    const stationSubtitle = document.getElementById('station-subtitle');
+    const startTimeInput = document.getElementById('startTime');
+    const endTimeInput = document.getElementById('endTime');
+    const tableHead = document.getElementById('tableHeader');
+    const tableBody = document.getElementById('dataTableBody');
+    const fetchDataBtn = document.getElementById('fetchDataBtn');
+    const paginationControls = document.getElementById('paginationControls');
+    const paginationInfo = document.getElementById('paginationInfo');
+
+    // --- Variabel State ---
+    let fullDataset = [];
+    let currentPage = 1;
+    const rowsPerPage = 10; // Baris per halaman ditetapkan menjadi 10
+    let stationParameters = [];
+    let currentStationId = null;
+
+    // --- Fungsi Bantuan ---
+    function getStationIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('stationId');
+    }
+
+    // --- Fungsi Render ---
+    function updateTableHeader(parameters) {
+        tableHead.innerHTML = '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<th>Waktu (UTC)</th>` + parameters.map(paramKey => {
+            const config = parameterConfig[paramKey] || { label: paramKey, unit: '' };
+            return `<th>${config.unit ? `${config.label} (${config.unit})` : config.label}</th>`;
+        }).join('');
+        tableHead.appendChild(tr);
+    }
+
+    function renderTablePage() {
+        const totalPages = Math.ceil(fullDataset.length / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = fullDataset.slice(start, end);
+
+        populateTableBody(pageData, stationParameters);
+        setupPagination(totalPages);
+
+        // Perbarui informasi jumlah baris
+        const startRow = fullDataset.length > 0 ? start + 1 : 0;
+        const endRow = Math.min(end, fullDataset.length);
+        paginationInfo.textContent = `Menampilkan ${startRow} - ${endRow} dari ${fullDataset.length} baris`;
+    }
+
+function populateTableBody(dataForPage, parameters) {
+    tableBody.innerHTML = '';
+    if (!dataForPage || dataForPage.length === 0) {
+        const columnCount = (parameters?.length || 0) + 1;
+        tableBody.innerHTML = `<tr><td colspan="${columnCount}" class="text-center">Tidak ada data untuk ditampilkan.</td></tr>`;
+        return;
+    }
+
+    dataForPage.forEach(row => {
+        const tr = document.createElement('tr');
+        const date = new Date(row._time);
+
+        // --- INI BAGIAN YANG DIPERBAIKI ---
+        // Kita membangun string waktu secara manual menggunakan fungsi UTC
+        const pad = (num) => String(num).padStart(2, '0');
+        const formattedTime = `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:00`;
+        // --- AKHIR BAGIAN YANG DIPERBAIKI ---
+
+        let cells = `<td>${formattedTime}</td>`;
+        parameters.forEach(paramKey => {
+            const value = row[paramKey];
+            const displayValue = (value !== undefined && value !== null) ? (typeof value === 'number' ? value.toFixed(1) : value) : '--';
+            cells += `<td>${displayValue}</td>`;
+        });
+        tr.innerHTML = cells;
+        tableBody.appendChild(tr);
+    });
+}
+
+    // Fungsi Paginasi BARU
+function setupPagination(totalPages) {
+    paginationControls.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const createPageItem = (text, page, isDisabled = false, isActive = false) => {
+        const li = document.createElement('li');
+        li.className = `page-item ${isDisabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`;
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = '#';
+        a.innerHTML = text;
+        if (!isDisabled) {
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = page;
+                renderTablePage();
+            });
+        }
+        li.appendChild(a);
+        return li;
+    };
+
+    paginationControls.appendChild(createPageItem('← Previous', currentPage - 1, currentPage === 1));
+
+    // --- LOGIKA BARU UNTUK MEMBATASI NOMOR HALAMAN ---
+    const maxPagesToShow = 5;
+    let startPage, endPage;
+
+    if (totalPages <= maxPagesToShow) {
+        // Jika total halaman lebih sedikit dari batas, tampilkan semua
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        // Jika total halaman lebih banyak, hitung rentang 5 halaman
+        const pagesBefore = Math.floor(maxPagesToShow / 2); // 2
+        const pagesAfter = Math.ceil(maxPagesToShow / 2) - 1; // 2
+
+        if (currentPage <= pagesBefore) {
+            // Kasus di awal (misal: halaman 1, 2)
+            startPage = 1;
+            endPage = maxPagesToShow;
+        } else if (currentPage + pagesAfter >= totalPages) {
+            // Kasus di akhir (misal: halaman 18, 19 dari 19)
+            startPage = totalPages - maxPagesToShow + 1;
+            endPage = totalPages;
+        } else {
+            // Kasus di tengah
+            startPage = currentPage - pagesBefore;
+            endPage = currentPage + pagesAfter;
+        }
+    }
+
+    // Buat tombol nomor halaman berdasarkan rentang yang dihitung
+    for (let i = startPage; i <= endPage; i++) {
+        paginationControls.appendChild(createPageItem(i, i, false, i === currentPage));
+    }
+    // --- AKHIR LOGIKA BARU ---
+
+    paginationControls.appendChild(createPageItem('Next →', currentPage + 1, currentPage === totalPages));
+}
+
+    // --- Fungsi Utama ---
+    async function fetchDataForStation() {
+        if (!currentStationId) return;
+        tableBody.innerHTML = `<tr><td colspan="100%" class="text-center">Memuat data...</td></tr>`;
+        const startTime = new Date(startTimeInput.value).toISOString();
+        const endTime = new Date(endTimeInput.value).toISOString();
+        const apiURL = `/api/weather/history?stationId=${currentStationId}&start=${startTime}&end=${endTime}`;
+        try {
+            const response = await fetch(apiURL);
+            const data = await response.json();
+            fullDataset = data;
+            currentPage = 1;
+            renderTablePage();
+        } catch (error) {
+            console.error("Gagal memuat data:", error);
+            fullDataset = [];
+            renderTablePage();
+        }
+    }
+
+    function setDefaultDateTime() {
+        // Dapatkan waktu server yang sudah disinkronkan dengan menggunakan timeOffset dari common.js
+        const serverNow = new Date(new Date().getTime() + timeOffset);
+        const oneHourAgoServer = new Date(serverNow.getTime() - 60 * 60 * 1000);
+
+        // Format ke string ISO (UTC) dan potong sesuai format input
+        endTimeInput.value = serverNow.toISOString().slice(0, 16);
+        startTimeInput.value = oneHourAgoServer.toISOString().slice(0, 16);
+    }
+
+    async function initialize() {
+        currentStationId = getStationIdFromUrl();
+        if (currentStationId) {
+            const allStations = await getStationList();
+            const selectedStation = allStations.find(s => s.id_stasiun === currentStationId);
+            if (selectedStation) {
+                tableTitle.textContent = selectedStation.nama_stasiun;
+                stationSubtitle.textContent = `ICAO: ${selectedStation.icao} / Runway ${selectedStation.runway}`;
+                stationParameters = selectedStation.parameters;
+                updateTableHeader(stationParameters);
+            } else {
+                tableTitle.textContent = "Stasiun Tidak Dikenali";
+            }
+            setDefaultDateTime();
+            await fetchDataForStation();
+        } else {
+            tableTitle.textContent = "Stasiun Tidak Ditemukan";
+            stationSubtitle.textContent = "Pilih stasiun dari halaman Peta.";
+            document.querySelector('.filter-controls').style.display = 'none';
+            document.querySelector('.table-container').style.display = 'none';
+        }
+        fetchDataBtn.addEventListener('click', fetchDataForStation);
+    }
+    
+    initialize();
+});

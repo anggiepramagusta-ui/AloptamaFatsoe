@@ -1,0 +1,185 @@
+/* public/css/table.css - PREMIUM THEMED VERSION */
+
+/* --- LAYOUT UTAMA --- */
+.container {
+    max-width: 100%;
+    padding: 0 1.5rem;
+}
+
+/* --- FILTER CONTROLS --- */
+/* Menggunakan variabel tema agar otomatis berubah warna */
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    background-color: var(--bg-card); /* Ikut tema */
+    color: var(--text-main);          /* Ikut tema */
+    border-radius: 12px;
+    box-shadow: 0 4px 6px var(--shadow-color);
+    border: 1px solid var(--border-color);
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 200px;
+}
+
+.control-group label {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- TABEL CONTAINER --- */
+.table-container {
+    padding: 0; /* Padding dipindah ke dalam wrapper responsif jika perlu */
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    overflow: hidden; /* Agar sudut border radius tidak bocor */
+}
+
+/* Tabel Styling */
+table {
+    margin-bottom: 0 !important;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Header Tabel */
+thead th {
+    background-color: var(--table-header) !important;
+    color: var(--text-muted) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem !important;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+}
+
+/* Isi Tabel */
+tbody td {
+    padding: 1rem 0.75rem !important;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+}
+
+tbody tr:hover,
+tbody tr:hover > td {
+    background-color: var(--hover-bg) !important; /* Latar belakang highlight */
+    color: var(--text-main) !important;          /* Paksa teks tetap warna utama (putih/abu terang) */
+    --bs-table-accent-bg: var(--hover-bg) !important; /* Override variabel Bootstrap 5 */
+}
+
+/* --- FOOTER & PAGINATION --- */
+.pagination-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background-color: var(--bg-card);
+}
+
+.pagination-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Tombol Paginasi */
+.page-link {
+    border-radius: 6px !important;
+    margin: 0 3px;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    background-color: var(--bg-card);
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.page-link:hover {
+    background-color: var(--hover-bg);
+    color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.page-item.active .page-link {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: #fff;
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--hover-bg);
+    color: var(--text-muted);
+    border-color: var(--border-color);
+}
+
+/* --- RESPONSIVE MOBILE VIEW (CARD STYLE) --- */
+@media screen and (max-width: 768px) {
+    .table-responsive {
+        border: none;
+    }
+    
+    table thead { display: none; }
+    
+    table, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+    }
+    
+    tbody tr {
+        margin-bottom: 1rem;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        margin: 1rem; /* Margin luar di mobile */
+        width: calc(100% - 2rem);
+    }
+    
+    tbody td {
+        display: flex;
+        justify-content: space-between;
+        text-align: right;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    tbody td:last-child { border-bottom: none; }
+    
+    tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-right: 1rem;
+    }
+
+    /* Highlight Kolom Waktu di Mobile */
+    tbody td[data-label="Waktu (UTC)"] {
+        background-color: var(--table-header);
+        color: var(--bs-primary);
+        font-weight: bold;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    tbody td[data-label="Waktu (UTC)"]::before { display: none; }
+    
+    .pagination-footer {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}

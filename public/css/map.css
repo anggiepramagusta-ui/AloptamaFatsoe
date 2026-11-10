@@ -1,0 +1,356 @@
+/* public/css/map.css - FINAL VERSION */
+
+/* --- 1. BASE LAYOUT --- */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow: hidden; /* Mencegah scrollbar ganda */
+}
+
+#map {
+    width: 100%;
+    height: calc(100% - 56px); /* Tinggi layar dikurangi tinggi Navbar Header */
+    z-index: 1;
+}
+
+/* --- 2. PREMIUM POPUP STYLE --- */
+
+/* Wrapper Popup agar lebih lebar dan lega */
+.leaflet-popup-content-wrapper {
+    padding: 0; 
+    border-radius: 8px; /* Sudut membulat halus */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); /* Shadow lembut */
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: 300px !important; /* Lebar fix agar konten tidak sempit */
+    font-family: 'Inter', sans-serif; 
+}
+
+/* Header Popup */
+.popup-header {
+    padding: 15px 20px;
+    background-color: #fff;
+    /* Border kiri default (akan diubah JS sesuai status) */
+    border-left: 6px solid #ccc; 
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.popup-header h6 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+    line-height: 1.2;
+}
+
+.popup-header p {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Body & Waktu Update */
+.popup-body {
+    padding: 0;
+    background-color: #fff;
+}
+
+.popup-time {
+    padding: 8px 20px;
+    font-size: 11px;
+    color: #888;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Tabel Data (Zebra Striping) */
+.popup-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.popup-table td {
+    padding: 6px 20px;
+    vertical-align: middle;
+}
+
+/* Warna selang-seling baris ganjil/genap */
+.popup-table tr:nth-child(even) { background-color: #fff; }
+.popup-table tr:nth-child(odd) { background-color: #fcfcfc; }
+
+.popup-table td:first-child {
+    color: #555;
+    width: 45%;
+    font-weight: 500;
+}
+
+.popup-table td:last-child {
+    color: #111;
+    font-weight: 700;
+    font-family: 'Roboto Mono', monospace; /* Font khusus angka */
+    text-align: right;
+}
+
+/* Footer & Tombol */
+.popup-footer {
+    padding: 12px 15px;
+    display: flex;
+    gap: 8px;
+    background-color: #fff;
+    border-top: 1px solid #f0f0f0;
+}
+
+.popup-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 0;
+    border-radius: 6px;
+    color: white !important;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.popup-btn:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    opacity: 0.95;
+}
+
+/* Warna Gradient Tombol */
+.btn-realtime { background: linear-gradient(135deg, #0d6efd, #0b5ed7); }
+.btn-datatable { background: linear-gradient(135deg, #17a2b8, #138496); }
+.btn-analytics { background: linear-gradient(135deg, #198754, #157347); }
+
+/* Class Helper untuk Warna Border Header */
+.status-border-green { border-left-color: #198754 !important; }
+.status-border-yellow { border-left-color: #ffc107 !important; }
+.status-border-red { border-left-color: #dc3545 !important; }
+
+
+/* --- 3. CUSTOM AIRPLANE CLUSTER STYLE --- */
+
+/* Hapus border/background default dari DivIcon */
+.custom-airplane-cluster {
+    background: transparent;
+    border: none;
+}
+
+/* Wrapper agar posisi relatif */
+.cluster-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); /* Bayangan ikon */
+    transition: transform 0.2s;
+}
+
+.cluster-wrapper:hover {
+    transform: scale(1.1); /* Efek membesar saat hover */
+}
+
+/* Badge Angka (Counter) */
+.cluster-badge {
+    position: absolute;
+    top: -8px;   /* Muncul di pojok kanan atas */
+    right: -8px;
+    background-color: #333; /* Warna dasar badge */
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+/* Warna Badge Spesifik (Opsional, jika ingin badge mengikuti warna status) */
+.badge-green { background-color: #198754; }
+.badge-yellow { background-color: #ffc107; color: #000; border-color: #fff; }
+.badge-red { background-color: #dc3545; animation: pulse-badge 1.5s infinite; }
+
+@keyframes pulse-badge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* --- 4. MAP SUMMARY CARD (Floating Legend) --- */
+.map-summary-card {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    width: 220px;
+    background-color: rgba(255, 255, 255, 0.95); /* Putih transparan */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000; /* Agar melayang di atas peta */
+    font-family: 'Inter', sans-serif;
+    border: 1px solid #ddd;
+    backdrop-filter: blur(5px);
+}
+
+.summary-title { 
+    margin: 0 0 10px 0; 
+    font-size: 14px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    color: #333; 
+    border-bottom: 1px solid #eee; 
+    padding-bottom: 5px; 
+}
+
+.summary-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 6px; 
+    font-size: 13px; 
+}
+
+/* Utility Warna */
+.bg-primary { background-color: #0d6efd; color: white; }
+.bg-success { background-color: #198754; }
+.bg-warning { background-color: #ffc107; }
+.bg-danger { background-color: #dc3545; }
+
+.text-success { color: #198754; }
+.text-warning { color: #d39e00; }
+.text-danger { color: #dc3545; }
+
+.fw-bold { font-weight: bold; }
+
+.badge-pill { 
+    padding: 2px 8px; 
+    border-radius: 10px; 
+    font-size: 12px; 
+    font-weight: bold; 
+}
+
+.dot { 
+    display: inline-block; 
+    width: 8px; 
+    height: 8px; 
+    border-radius: 50%; 
+    margin-right: 5px; 
+}
+
+/* --- FITUR LIST STASIUN --- */
+
+/* Efek Hover pada baris summary agar user tahu bisa diklik */
+.clickable-row {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    transition: background-color 0.2s;
+}
+.clickable-row:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* Modal Melayang */
+.station-list-modal {
+    position: absolute;
+    bottom: 240px; /* Muncul di atas summary card */
+    right: 20px;
+    width: 280px;
+    max-height: 400px; /* Maksimal tinggi, sisanya scroll */
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 2000; /* Paling atas */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+    border: 1px solid #ddd;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header-custom {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #666;
+    cursor: pointer;
+    line-height: 1;
+}
+.btn-close-custom:hover { color: #000; }
+
+.modal-body-custom {
+    overflow-y: auto; /* Scrollable */
+    flex: 1;
+}
+
+/* Item List Stasiun */
+.station-list-item {
+    cursor: pointer;
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.station-list-item:hover {
+    background-color: #f0f8ff; /* Biru muda saat hover */
+}
+
+.station-list-item:last-child {
+    border-bottom: none;
+}
+
+.item-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    display: block;
+}
+
+.item-meta {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+    display: block;
+}
+
+.item-time {
+    font-size: 10px;
+    color: #aaa;
+    float: right;
+}

@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    ports:
+      - "4001:3000"
+    environment:
+      - PORT=3000
+      - INFLUX_URL=http://202.90.199.132:8086
+      - INFLUX_ORG=IRM
+      - INFLUX_BUCKET=awos_monitoring
+      - INFLUX_TOKEN=${INFLUX_TOKEN}
+      - POSTGRES_HOST=db
+      - POSTGRES_USER=bmkg
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}   # <-- Tambahkan ini
+      - POSTGRES_DB=irmdb
+      - SESSION_SECRET=${SESSION_SECRET}         # <-- Tambahkan ini
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - monitoring_net
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: bmkg
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: irmdb
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - monitoring_net
+
+volumes:
+  db_data:
+
+networks:
+  monitoring_net:
+    name: monitoring-net

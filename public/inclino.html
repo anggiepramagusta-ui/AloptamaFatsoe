@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Inclinometer Ganda - Menara Radar</title>
+    <!-- Script untuk library grafik, Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #eef1f5;
+            color: #333;
+            transition: background-color 0.5s ease-in-out;
+        }
+        header {
+            background: linear-gradient(90deg, #0a4a7a, #0c5a94);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; }
+        main {
+            padding: 1.5rem;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 1.5rem;
+            max-width: 1600px;
+            margin: auto;
+        }
+        .panel {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+        }
+        
+        /* -- Perbaikan Tata Letak Grid -- */
+        @media (min-width: 820px) {
+            .viz-panel { grid-area: viz; }
+            .data-panel-1 { grid-area: data1; }
+            .data-panel-2 { grid-area: data2; }
+            .chart-panel-1 { grid-area: chart1; }
+            .chart-panel-2 { grid-area: chart2; }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr 1.2fr; /* Kolom kiri lebih kecil dari kanan */
+                grid-template-areas:
+                    "viz chart1"
+                    "data1 chart1"
+                    "data2 chart2";
+            }
+        }
+
+        /* --- CSS untuk Visualisasi Menara Radar --- */
+        .gedung-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 350px;
+            padding-bottom: 5%;
+            perspective: 800px;
+        }
+        #radar-tower-container {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-in-out;
+            transform-origin: bottom center;
+        }
+        .tower {
+            width: 80px;
+            height: 250px;
+            background: linear-gradient(90deg, #bdc3c7, #a0a6ab);
+            margin: 0 auto;
+            position: relative;
+            border-top: 10px solid #7f8c8d;
+        }
+        .radar-dome {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #ecf0f1, #bdc3c7);
+            border-radius: 50%;
+            position: absolute;
+            top: -65px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 2px solid #95a5a6;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .tower-base {
+            width: 120px;
+            height: 20px;
+            background: #7f8c8d;
+            margin: 0 auto;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .data-group {
+            margin-bottom: 1rem;
+            border-left: 4px solid #0a4a7a;
+            padding-left: 1rem;
+        }
+        .data-group h4 { margin: 0; color: #0a4a7a; font-size: 0.9rem; }
+        .data-group p { margin: 0.2rem 0; font-size: 1.1rem; font-weight: bold; }
+        .status-box {
+            padding: 0.5rem; border-radius: 5px; text-align: center;
+            font-weight: bold; margin-top: 0.5rem; color: white;
+            background-color: #28a745; transition: background-color 0.5s;
+            text-transform: uppercase;
+        }
+        .status-warning { background-color: #ffc107; color: #333; }
+        .status-critical { background-color: #dc3545; }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+            flex-grow: 1;
+        }
+        h3 {
+            border-bottom: 2px solid #eee; padding-bottom: 0.5rem;
+            margin-top: 0; color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Dasbor Inclinometer Ganda</h1>
+        <p>Pemantauan Stabilitas Menara Radar secara Real-time</p>
+    </header>
+
+    <main>
+        <div class="dashboard-grid">
+            <div class="panel viz-panel">
+                <h3>Visualisasi Kemiringan Menara</h3>
+                <div class="gedung-container">
+                    <div id="radar-tower-container">
+                        <div class="tower">
+                            <div class="radar-dome"></div>
+                        </div>
+                        <div class="tower-base"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel data-panel-1">
+                <h3>Data Inclinometer #1</h3>
+                <div class="data-group"><h4>Sumbu X (Pitch)</h4><p id="sumbu-x-1">0.00°</p></div>
+                <div class="data-group"><h4>Sumbu Y (Roll)</h4><p id="sumbu-y-1">0.00°</p></div>
+                <div class="data-group"><h4>Suhu Sensor</h4><p id="suhu-1">0.0°C</p></div>
+                <div id="status-1" class="status-box">Status: Aman</div>
+            </div>
+
+            <div class="panel data-panel-2">
+                <h3>Data Inclinometer #2</h3>
+                <div class="data-group"><h4>Sumbu X (Pitch)</h4><p id="sumbu-x-2">0.00°</p></div>
+                <div class="data-group"><h4>Sumbu Y (Roll)</h4><p id="sumbu-y-2">0.00°</p></div>
+                <div class="data-group"><h4>Suhu Sensor</h4><p id="suhu-2">0.0°C</p></div>
+                <div id="status-2" class="status-box">Status: Aman</div>
+            </div>
+
+            <div class="panel chart-panel-1">
+                <h3>Grafik Kemiringan (Sensor #1 & #2)</h3>
+                <canvas id="tiltChart"></canvas>
+            </div>
+
+            <div class="panel chart-panel-2">
+                <h3>Grafik Suhu (Sensor #1 & #2)</h3>
+                <canvas id="tempChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const radarTower = document.getElementById('radar-tower-container');
+            const body = document.body;
+            const dataSumbuX1 = document.getElementById('sumbu-x-1'), dataSumbuY1 = document.getElementById('sumbu-y-1'), dataSuhu1 = document.getElementById('suhu-1'), statusBar1 = document.getElementById('status-1');
+            const dataSumbuX2 = document.getElementById('sumbu-x-2'), dataSumbuY2 = document.getElementById('sumbu-y-2'), dataSuhu2 = document.getElementById('suhu-2'), statusBar2 = document.getElementById('status-2');
+            
+            const tiltCtx = document.getElementById('tiltChart').getContext('2d');
+            const tiltChart = new Chart(tiltCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: 'Sensor 1 - Sumbu X', data: [], borderColor: 'rgba(255, 99, 132, 1)', tension: 0.4, borderWidth: 2 },
+                    { label: 'Sensor 1 - Sumbu Y', data: [], borderColor: 'rgba(54, 162, 235, 1)', tension: 0.4, borderWidth: 2 },
+                    { label: 'Sensor 2 - Sumbu X', data: [], borderColor: 'rgba(255, 206, 86, 1)', tension: 0.4, borderWidth: 2, borderDash: [5, 5] },
+                    { label: 'Sensor 2 - Sumbu Y', data: [], borderColor: 'rgba(75, 192, 192, 1)', tension: 0.4, borderWidth: 2, borderDash: [5, 5] }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { suggestedMin: -5, suggestedMax: 5 } } }
+            });
+
+            const tempCtx = document.getElementById('tempChart').getContext('2d');
+            const tempChart = new Chart(tempCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: 'Sensor 1 - Suhu (°C)', data: [], borderColor: 'rgba(153, 102, 255, 1)', backgroundColor: 'rgba(153, 102, 255, 0.2)', fill: true, tension: 0.4 },
+                    { label: 'Sensor 2 - Suhu (°C)', data: [], borderColor: 'rgba(255, 159, 64, 1)', backgroundColor: 'rgba(255, 159, 64, 0.2)', fill: true, tension: 0.4 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { suggestedMin: 20, suggestedMax: 40 } } }
+            });
+
+            function updateStatus(statusBar, tiltX, tiltY) {
+                const maxTilt = Math.max(Math.abs(tiltX), Math.abs(tiltY));
+                statusBar.className = 'status-box';
+                if (maxTilt > 4.0) { statusBar.textContent = 'Status: KRITIS'; statusBar.classList.add('status-critical'); } 
+                else if (maxTilt > 2.0) { statusBar.textContent = 'Status: PERINGATAN'; statusBar.classList.add('status-warning'); } 
+                else { statusBar.textContent = 'Status: AMAN'; }
+                return maxTilt;
+            }
+
+            function updateData() {
+                const tiltX1 = (Math.random() - 0.5) * 6, tiltY1 = (Math.random() - 0.4) * 6, temp1 = 28 + (Math.random() - 0.5) * 8;
+                const tiltX2 = (Math.random() - 0.6) * 6, tiltY2 = (Math.random() - 0.5) * 6, temp2 = 29 + (Math.random() - 0.5) * 8;
+
+                dataSumbuX1.textContent = `${tiltX1.toFixed(2)}°`; dataSumbuY1.textContent = `${tiltY1.toFixed(2)}°`; dataSuhu1.textContent = `${temp1.toFixed(2)}°C`;
+                const maxTilt1 = updateStatus(statusBar1, tiltX1, tiltY1);
+
+                dataSumbuX2.textContent = `${tiltX2.toFixed(2)}°`; dataSumbuY2.textContent = `${tiltY2.toFixed(2)}°`; dataSuhu2.textContent = `${temp2.toFixed(2)}°C`;
+                const maxTilt2 = updateStatus(statusBar2, tiltX2, tiltY2);
+
+                const worstTiltX = Math.abs(tiltX1) > Math.abs(tiltX2) ? tiltX1 : tiltX2;
+                const worstTiltY = Math.abs(tiltY1) > Math.abs(tiltY2) ? tiltY1 : tiltY2;
+                radarTower.style.transform = `rotateY(${worstTiltX.toFixed(2)}deg) rotateX(${-worstTiltY.toFixed(2)}deg)`;
+
+                if (maxTilt1 > 4.0 || maxTilt2 > 4.0) { body.style.backgroundColor = '#f8d7da'; } 
+                else if (maxTilt1 > 2.0 || maxTilt2 > 2.0) { body.style.backgroundColor = '#fff3cd'; } 
+                else { body.style.backgroundColor = '#eef1f5'; }
+
+                const now = new Date().toLocaleTimeString();
+                addDataToChart(tiltChart, now, [tiltX1, tiltY1, tiltX2, tiltY2]);
+                addDataToChart(tempChart, now, [temp1, temp2]);
+            }
+
+            function addDataToChart(chart, label, data) {
+                chart.data.labels.push(label);
+                chart.data.datasets.forEach((dataset, index) => dataset.data.push(data[index]));
+                const maxDataPoints = 20;
+                if (chart.data.labels.length > maxDataPoints) {
+                    chart.data.labels.shift();
+                    chart.data.datasets.forEach(dataset => dataset.data.shift());
+                }
+                chart.update();
+            }
+            setInterval(updateData, 2000);
+            updateData();
+        });
+    </script>
+</body>
+</html>
+
