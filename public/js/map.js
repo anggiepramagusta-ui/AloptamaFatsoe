@@ -3,24 +3,31 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Inisialisasi Batas Wilayah & Peta (Khusus Provinsi Bengkulu)
+    // 1. Inisialisasi Batas Wilayah Bengkulu
     const bengkuluBounds = [
         [-5.60, 101.00], // Southwest: Samudra Hindia & Pulau Enggano
-        [-2.20, 103.80]  // Northeast: Mukomuko & batas wilayah provinsi
+        [-2.20, 103.80]  // Northeast: Mukomuko & perbatasan utara
     ];
 
     const map = L.map('map', {
-        center: [-3.8000, 102.2600], // Pusat koordinat Bengkulu
-        zoom: 8,                     // Zoom ideal seluruh daratan Bengkulu & Enggano
-        minZoom: 7,                  // Mencegah zoom-out terlalu jauh keluar provinsi
-        maxBounds: bengkuluBounds,   // Mengunci koordinat dalam batas Bengkulu
-        maxBoundsViscosity: 1.0      // Mencegah peta bisa digeser keluar batas (kaku)
+        minZoom: 7,
+        maxBounds: bengkuluBounds,
+        maxBoundsViscosity: 1.0
     });
+
+    // Otomatis sesuaikan ukuran peta ke batas Bengkulu
+    map.fitBounds(bengkuluBounds, { padding: [10, 10] });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap'
     }).addTo(map);
+
+    // Pastikan ukuran peta terhitung sempurna di DOM
+    setTimeout(() => {
+        map.invalidateSize();
+        map.fitBounds(bengkuluBounds);
+    }, 200);
 
     // --- KONFIGURASI ICON [UPDATED SIZE] ---
     const baseIconConfig = {
